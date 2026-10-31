@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>รวยทิพย์ · ยืนยันอีเมล</title>
+<!--
+  Landing page for the sign-up confirmation link of RuayThip (apps/android, 06 §5.12, D39).
+  Supabase confirms the email first, then redirects here with ?app=<app link>&code=<PKCE code>
+  (or an error in the query or fragment). This page:
+  - always says the email is confirmed (or that the link expired) in Thai with an English line;
+  - forwards the code to the app link only for the app's own schemes (exp://, exps://, ruaythip://),
+    never to any other address, so it cannot be used as an open redirect;
+  - opens the app automatically on Android only; elsewhere (iPhone, desktop) it shows the button,
+    because Safari shows "invalid address" for a scheme it cannot open.
+  Colours are the tokens of design/project/tokens.css (direction A "ฟ้าใส").
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #EEF3F9; --surface: #FFFFFF; --line: #DCE3EE; --text: #0E1726; --text-2: #435066; --text-3: #556277;
+    --accent: #2155D4; --accent-soft: #E5ECFD; --on-accent: #FFFFFF; --income: #0B7A4B; --income-soft: #E2F3EA;
+    --attention: #8F5200; --attention-soft: #FFF1D2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-base: #0B1322; --surface: #121B2D; --line: #24314A; --text: #EAF0FA; --text-2: #AEBBD0; --text-3: #8E9CB3;
+      --accent: #86A8FF; --accent-soft: #1A2A52; --on-accent: #0A1430; --income: #5FE0A8; --income-soft: #123A2E;
+      --attention: #F6C15B; --attention-soft: #3A2C0E;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px;
+    background: var(--bg-base); color: var(--text);
+    font-family: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5;
+  }
+  main { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 32px 24px; text-align: center; }
+  .mark { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: var(--income-soft); color: var(--income); }
+  .mark.warn { background: var(--attention-soft); color: var(--attention); }
+  h1 { font-size: 22px; line-height: 30px; font-weight: 600; margin: 0 0 8px; }
+  p { margin: 0 0 8px; color: var(--text-2); font-size: 16px; }
+  p.en { color: var(--text-3); font-size: 14px; }
+  .button { display: none; margin-top: 20px; min-height: 48px; padding: 12px 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 16px; text-decoration: none; }
+  .button.show { display: inline-flex; align-items: center; justify-content: center; }
+  .hint { margin-top: 16px; font-size: 13px; color: var(--text-3); }
+  .brand { margin-top: 24px; font-size: 13px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<main>
+  <div class="mark" id="mark" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg>
+  </div>
+  <h1 id="title">ยืนยันอีเมลแล้ว</h1>
+  <p id="body">กลับไปเปิดแอปรวยทิพย์แล้วเข้าสู่ระบบ</p>
+  <p class="en" id="body-en">Email confirmed. Go back to the RuayThip app and sign in.</p>
+  <a class="button" id="open" href="#">เปิดแอปรวยทิพย์ · Open the app</a>
+  <p class="hint" id="hint" hidden>ถ้าแอปไม่เปิด ให้สลับไปที่แอปรวยทิพย์เอง แล้วกด "ยืนยันแล้ว เข้าสู่ระบบ" · If the app does not open, switch to it yourself and tap "I confirmed it, sign in".</p>
+  <p class="brand">รวยทิพย์ · RuayThip</p>
+</main>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+  function get(name) { return params.get(name) || hash.get(name); }
+
+  var error = get('error_code') || get('error');
+  if (error) {
+    document.getElementById('mark').className = 'mark warn';
+    document.getElementById('mark').innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    document.getElementById('title').textContent = 'ลิงก์นี้ใช้ไม่ได้แล้ว';
+    document.getElementById('body').textContent = 'ลิงก์อาจหมดอายุหรือถูกใช้ไปแล้ว ถ้าอีเมลยืนยันแล้ว ให้เปิดแอปรวยทิพย์แล้วเข้าสู่ระบบได้เลย ถ้ายังไม่ได้ยืนยัน ให้กด "ส่งอีเมลยืนยันอีกครั้ง" ในแอป';
+    document.getElementById('body-en').textContent = 'This link expired or was already used. If your email is confirmed, just sign in in the app; otherwise tap "Send the confirmation again" there.';
+  }
+
+  // Forward only to the app's own schemes; anything else is ignored (no open redirect).
+  var app = params.get('app');
+  if (!app || !/^(exps?|ruaythip):\/\//i.test(app)) return;
+  var code = params.get('code');
+  var target = app;
+  if (code && !error) target += (app.indexOf('?') >= 0 ? '&' : '?') + 'code=' + encodeURIComponent(code);
+  var link = document.getElementById('open');
+  link.href = target;
+  link.className = 'button show';
+  document.getElementById('hint').hidden = false;
+  // Right away, while still part of Supabase's redirect: browsers may block a later scheme jump.
+  if (/Android/i.test(navigator.userAgent) && !error) location.href = target;
+})();
+</script>
+</body>
+</html>
